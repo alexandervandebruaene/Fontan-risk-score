@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fontan 10-Year Risk Score</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --navy:#182D52;--navy2:#1E3A6B;
+  --blue:#2F7ED4;--blue2:#1B63B0;
+  --bg:#ECF1F9;--card:#FFF;
+  --border:#D2DDED;--border2:#E8EFF9;
+  --t1:#182D52;--t2:#4D6280;--t3:#8A9FBB;
+  --inp:#F2F6FC;--tog:#EDF1FA;
+  --sh0:0 1px 3px rgba(24,45,82,.07),0 1px 2px rgba(24,45,82,.04);
+  --sh1:0 4px 14px rgba(24,45,82,.09),0 2px 5px rgba(24,45,82,.05);
+  --g:#15803D;--gb:#DCFCE7;
+  --a:#B45309;--ab:#FEF3C7;
+  --r:#B91C1C;--rb:#FEE2E2;
+  --rr:8px;
+}
+
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t1);line-height:1.5;font-size:14px;min-height:100vh}
+
+/* ── HEADER ── */
+header{
+  background:linear-gradient(145deg,#152545 0%,#1E3B6C 100%);
+  color:#fff;text-align:center;padding:28px 20px 24px;
+}
+header h1{
+  font-family:'Crimson Text',Georgia,serif;
+  font-size:clamp(1.5rem,4.5vw,2.15rem);
+  font-weight:600;line-height:1.15;margin-bottom:7px;letter-spacing:-.02em;
+}
+header p{font-size:.83rem;color:rgba(255,255,255,.62);font-weight:300;max-width:580px;margin:0 auto 12px;line-height:1.55}
+.hbadge{
+  display:inline-block;padding:3px 13px;
+  border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);
+  border-radius:20px;font-size:.68rem;color:rgba(255,255,255,.62);letter-spacing:.04em;
+}
+
+/* ── LAYOUT ── */
+.wrap{max-width:1080px;margin:0 auto;padding:20px 16px 48px;display:grid;grid-template-columns:1fr 344px;gap:18px;align-items:start}
+.sticky{position:sticky;top:20px}
+@media(max-width:780px){
+  .wrap{grid-template-columns:1fr}
+  .sticky{position:static;order:-1}
+}
+
+/* ── CARDS ── */
+.card{background:var(--card);border-radius:var(--rr);border:1px solid var(--border);box-shadow:var(--sh0);overflow:hidden;margin-bottom:16px}
+.card:last-child{margin-bottom:0}
+.ch{padding:12px 18px;background:#F4F8FD;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px}
+.ch h2{font-size:.77rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t1)}
+.ch .opt{font-weight:400;text-transform:none;letter-spacing:0;font-size:.74rem;color:var(--t3);margin-left:2px}
+.nbadge{width:21px;height:21px;background:var(--navy);color:#fff;border-radius:50%;font-size:.68rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cb{padding:16px 18px}
+
+/* ── FIELD ROWS (toggle style) ── */
+.fr{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border2);gap:10px}
+.fr:last-of-type{border-bottom:none}
+.frl{flex:1;font-size:.83rem;font-weight:500;color:var(--t1);min-width:0}
+.frl small{font-size:.71rem;color:var(--t3);font-weight:400}
+
+/* ── FIELD BLOCKS (input style) ── */
+.fb{margin-bottom:15px}
+.fb:last-child{margin-bottom:0}
+.fb label{display:block;font-size:.82rem;font-weight:600;color:var(--t1);margin-bottom:7px}
+.fb label small{font-size:.71rem;color:var(--t3);font-weight:400}
+.irow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+input[type=number]{
+  background:var(--inp);border:1px solid var(--border);border-radius:6px;
+  padding:7px 10px;font-family:inherit;font-size:.9rem;color:var(--t1);
+  width:92px;transition:border-color .15s,box-shadow .15s;
+  -moz-appearance:textfield;
+}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
+input[type=number]:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,126,212,.13)}
+.ulbl{font-size:.77rem;color:var(--t3)}
+.fnote{margin-top:5px;font-size:.72rem;color:var(--t2)}
+.fnote .pv{font-weight:700;color:var(--blue)}
+.sep{margin:14px 0 12px;border:none;border-top:1px solid var(--border2)}
+
+/* ── TOGGLE BUTTONS ── */
+.tog{display:inline-flex;background:var(--tog);border:1px solid var(--border);border-radius:6px;overflow:hidden;flex-shrink:0}
+.tb{border:none;background:none;padding:5px 12px;font-family:inherit;font-size:.77rem;font-weight:500;color:var(--t2);cursor:pointer;transition:all .12s;white-space:nowrap}
+.tb:hover{background:rgba(47,126,212,.1);color:var(--blue)}
+.tb.on{background:var(--navy);color:#fff}
+.tb.on.yes{background:var(--blue)}
+.tb+.tb{border-left:1px solid var(--border)}
+
+/* ── MODULE TABS ── */
+.mtabs{display:flex;gap:3px;padding:4px;background:var(--tog);border-radius:8px;margin-bottom:13px}
+.mtab{flex:1;border:none;background:transparent;padding:7px 3px;border-radius:6px;font-family:inherit;font-size:.75rem;font-weight:600;color:var(--t2);cursor:pointer;transition:all .12s;text-align:center}
+.mtab:hover{background:rgba(255,255,255,.5)}
+.mtab.on{background:#fff;color:var(--navy);box-shadow:var(--sh0)}
+
+/* ── WARNING ── */
+.warn{background:#FFFBEB;border:1px solid #FDE68A;border-radius:6px;padding:9px 13px;font-size:.74rem;color:#78350F;line-height:1.55;margin-bottom:13px}
+.warn strong{color:#92400E}
+
+/* ── MODULE PANELS ── */
+.mp{display:none}
+.mp.on{display:block}
+.mfooter{font-size:.7rem;color:var(--t3);margin-top:8px;padding-top:8px;border-top:1px solid var(--border2);line-height:1.5}
+
+/* ── OUTPUT CARD ── */
+.gwrap{padding:20px 14px 12px;text-align:center}
+svg.gauge{display:block;margin:0 auto;width:100%;max-width:286px}
+.rnum{font-family:'Crimson Text',Georgia,serif;font-size:3.1rem;font-weight:600;line-height:1;letter-spacing:-.02em;transition:color .3s}
+.rsub{font-size:.68rem;color:var(--t3);margin:4px auto 10px;font-weight:400;line-height:1.45;max-width:200px}
+.rbadge{display:inline-block;padding:4px 16px;border-radius:20px;font-size:.71rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;transition:all .3s}
+.cat-low{background:var(--gb);color:var(--g)}
+.cat-mid{background:var(--ab);color:var(--a)}
+.cat-high{background:var(--rb);color:var(--r)}
+
+/* ── COMPARISON ── */
+.cbox{border-top:1px solid var(--border);padding:12px 18px}
+.ctitle{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin-bottom:8px}
+.crow{display:flex;align-items:center;justify-content:space-between;padding:3px 0;font-size:.8rem}
+.clbl{color:var(--t2)}
+.cval{font-weight:700;font-variant-numeric:tabular-nums}
+.dtag{font-size:.71rem;font-weight:600;padding:2px 8px;border-radius:4px;margin-left:8px;white-space:nowrap}
+.dup{background:var(--rb);color:var(--r)}
+.ddown{background:var(--gb);color:var(--g)}
+.dsame{background:var(--tog);color:var(--t2)}
+
+/* ── BREAKDOWN ── */
+.bdown{border-top:1px solid var(--border);padding:13px 18px}
+.bdtitle{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin-bottom:9px}
+.brow{display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:.78rem;color:var(--t2);border-bottom:1px solid var(--border2)}
+.brow:last-of-type{border-bottom:none}
+.brow.sh{border-bottom:none;padding-top:7px;margin-top:4px;font-size:.71rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t3)}
+.bpts{font-weight:700;font-variant-numeric:tabular-nums;min-width:34px;text-align:right}
+.pp{color:var(--r)}.pn{color:var(--g)}.pz{color:var(--t3)}
+.btot{display:flex;justify-content:space-between;align-items:center;padding:7px 11px;background:var(--inp);border-radius:6px;margin-top:7px;font-size:.8rem}
+.btot .bl{font-weight:500;color:var(--t2)}
+.btot .bv{font-weight:700;color:var(--navy)}
+
+/* ── REF TABLE ── */
+.refwrap{max-width:1080px;margin:0 auto 18px;padding:0 16px}
+.refbtn{display:flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--border);border-radius:6px;padding:7px 14px;font-family:inherit;font-size:.76rem;font-weight:500;color:var(--t2);cursor:pointer;margin-bottom:10px;transition:all .12s}
+.refbtn:hover{border-color:var(--blue);color:var(--blue)}
+.refpanel{display:none}
+.refpanel.on{display:block}
+.reftbl-wrap{background:#fff;border-radius:var(--rr);border:1px solid var(--border);overflow:auto}
+table.reft{width:100%;border-collapse:collapse;font-size:.78rem}
+table.reft th{background:#F4F8FD;padding:8px 14px;text-align:center;font-size:.69rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t2);border-bottom:1px solid var(--border)}
+table.reft td{padding:5px 14px;text-align:center;border-bottom:1px solid var(--border2);font-variant-numeric:tabular-nums}
+table.reft tr:last-child td{border-bottom:none}
+table.reft tr.cur td{background:#EDF4FF;font-weight:700}
+.cl{color:var(--g);font-weight:700}.cm{color:var(--a);font-weight:700}.cr{color:var(--r);font-weight:700}
+
+/* ── DISCLAIMER ── */
+.discwrap{max-width:1080px;margin:0 auto 32px;padding:0 16px}
+.disc{background:#F6F1FF;border:1px solid #DDD4F8;border-radius:var(--rr);padding:14px 18px;font-size:.72rem;color:#4C1D95;line-height:1.65}
+.disc strong{color:#3B0764}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Fontan 10-Year Risk Score</h1>
+  <p>Modular clinical risk calculator for adverse outcomes (heart failure admission, transplantation, or death) in adults with Fontan circulation. First-visit model with optional CPET, catheterization, and CMR-LGE add-on modules.</p>
+  <span class="hbadge">Toronto Fontan Outcomes</span>
+</header>
+
+<div class="wrap">
+
+  <!-- ════ LEFT: INPUTS ════ -->
+  <div>
+
+    <!-- Card 1: First-visit variables -->
+    <div class="card">
+      <div class="ch">
+        <div class="nbadge">1</div>
+        <h2>First-Visit Clinical Variables</h2>
+      </div>
+      <div class="cb">
+
+        <!-- Age -->
+        <div class="fb">
+          <label for="age">Age at first ACHD visit <small>(years)</small></label>
+          <div class="irow">
+            <input type="number" id="age" value="18" min="10" max="80" oninput="calc()">
+            <span class="ulbl">years</span>
+          </div>
+          <div class="fnote">Bracket: <span id="age-cat">< 23 yrs</span> → <span class="pv" id="age-pts">0 pts</span></div>
+        </div>
+
+        <hr class="sep">
+
+        <!-- Heterotaxy -->
+        <div class="fr">
+          <span class="frl">Heterotaxy</span>
+          <div class="tog">
+            <button class="tb on" onclick="setTog('het',0,this)">No</button>
+            <button class="tb" onclick="setTog('het',4,this)">Yes &nbsp;+4</button>
+          </div>
+        </div>
+
+        <!-- Lymphatic failure -->
+        <div class="fr">
+          <span class="frl">Lymphatic failure <small>(PLE or plastic bronchitis)</small></span>
+          <div class="tog">
+            <button class="tb on" onclick="setTog('lymph',0,this)">No</button>
+            <button class="tb" onclick="setTog('lymph',2,this)">Yes &nbsp;+2</button>
+          </div>
+        </div>
+
+        <!-- Collaterals -->
+        <div class="fr">
+          <span class="frl">Veno-venous collaterals</span>
+          <div class="tog">
+            <button class="tb on" onclick="setTog('coll',0,this)">No</button>
+            <button class="tb" onclick="setTog('coll',1,this)">Yes &nbsp;+1</button>
+          </div>
+        </div>
+
+        <!-- Cirrhosis -->
+        <div class="fr" style="margin-bottom:14px">
+          <span class="frl">Cirrhosis <small>(by imaging criteria)</small></span>
+          <div class="tog">
+            <button class="tb on" onclick="setTog('cirr',0,this)">No</button>
+            <button class="tb" onclick="setTog('cirr',1,this)">Yes &nbsp;+1</button>
+          </div>
+        </div>
+
+        <hr class="sep">
+
+        <!-- Bilirubin -->
+        <div class="fb">
+          <label for="bili">Total bilirubin</label>
+          <div class="irow">
+            <input type="number" id="bili" value="17" min="0" step="0.1" oninput="calc()">
+            <div class="tog">
+              <button class="tb on" onclick="setBilUnit('umol',this)">µmol/L</button>
+              <button class="tb" onclick="setBilUnit('mgdl',this)">mg/dL</button>
+            </div>
+          </div>
+          <div class="fnote">Category: <span id="bil-cat">≤ 20 µmol/L</span> → <span class="pv" id="bil-pts">0 pts</span></div>
+        </div>
+
+        <!-- NP -->
+        <div class="fb">
+          <label>Natriuretic peptide</label>
+          <div class="irow" style="margin-bottom:7px">
+            <div class="tog">
+              <button class="tb on" onclick="setNPType('bnp',this)">BNP</button>
+              <button class="tb" onclick="setNPType('ntprobnp',this)">NT-proBNP</button>
+            </div>
+          </div>
+          <div class="irow">
+            <input type="number" id="npval" value="30" min="0" oninput="calc()">
+            <span class="ulbl">ng/L</span>
+          </div>
+          <div class="fnote">Threshold: <span id="np-thresh">BNP ≥ 100 ng/L</span> → <span class="pv" id="np-pts">0 pts</span></div>
+          <div class="fnote" style="margin-top:3px;color:var(--t3)">NT-proBNP threshold is an approximate clinical analogue only; not directly interchangeable with BNP.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Card 2: Add-on module -->
+    <div class="card">
+      <div class="ch">
+        <div class="nbadge">2</div>
+        <h2>Add-On Module <span class="opt">(optional — select one)</span></h2>
+      </div>
+      <div class="cb">
+
+        <div class="mtabs">
+          <button class="mtab on" onclick="setMod('none',this)">None</button>
+          <button class="mtab" onclick="setMod('cpet',this)">CPET</button>
+          <button class="mtab" onclick="setMod('cath',this)">Catheterization</button>
+          <button class="mtab" onclick="setMod('cmr',this)">CMR</button>
+        </div>
+
+        <div class="warn">
+          ⚠ <strong>Modules are mutually exclusive.</strong> Add-on modules use different landmark time origins and baseline hazards. Do not combine results from CPET, catheterization, and CMR — this approach has not been validated.
+        </div>
+
+        <!-- NONE panel -->
+        <div class="mp on" id="panel-none">
+          <p style="font-size:.79rem;color:var(--t3);line-height:1.55">No add-on investigation selected. Ten-year risk is estimated from first-visit variables only.<br>Risk-equivalent points = raw first-visit score.</p>
+        </div>
+
+        <!-- CPET panel -->
+        <div class="mp" id="panel-cpet">
+          <div class="fb">
+            <label for="vo2">Peak VO₂ <small>(mL/kg/min)</small></label>
+            <div class="irow">
+              <input type="number" id="vo2" value="20" min="1" max="70" step="0.1" oninput="calc()">
+              <span class="ulbl">mL/kg/min</span>
+            </div>
+            <div class="fnote">Category: <span id="vo2-cat">20–24.9 mL/kg/min</span> → <span class="pv" id="vo2-pts">0 pts</span></div>
+          </div>
+          <div class="fb">
+            <label for="vemvv">Peak VE/MVV <small>(%)</small></label>
+            <div class="irow">
+              <input type="number" id="vemvv" value="49" min="0" max="120" oninput="calc()">
+              <span class="ulbl">%</span>
+            </div>
+            <div class="fnote">Category: <span id="vemvv-cat">< 50%</span> → <span class="pv" id="vemvv-pts">−1 pts</span></div>
+          </div>
+          <div class="mfooter">Risk-equivalent points = 1.52 + 0.89 × (first-visit raw + CPET raw score). Represents 10-year risk from the date of CPET.</div>
+        </div>
+
+        <!-- CATH panel -->
+        <div class="mp" id="panel-cath">
+          <div class="fb">
+            <label for="fp">Fontan pressure <small>(mmHg)</small></label>
+            <div class="irow">
+              <input type="number" id="fp" value="15" min="1" max="50" oninput="calc()">
+              <span class="ulbl">mmHg</span>
+            </div>
+            <div class="fnote">Category: <span id="fp-cat">13–15 mmHg</span> → <span class="pv" id="fp-pts">0 pts</span></div>
+          </div>
+          <div class="mfooter">Risk-equivalent points = 3.07 + 0.84 × (first-visit raw + catheterization raw score). Represents 10-year risk from the date of catheterization.</div>
+        </div>
+
+        <!-- CMR panel -->
+        <div class="mp" id="panel-cmr">
+          <div class="fr" style="border-bottom:none;padding-bottom:0">
+            <span class="frl">Late gadolinium enhancement (LGE)</span>
+            <div class="tog">
+              <button class="tb on" onclick="setTog('lge',0,this)">Absent</button>
+              <button class="tb" onclick="setTog('lge',2,this)">Present &nbsp;+2</button>
+            </div>
+          </div>
+          <div class="mfooter" style="margin-top:10px">Risk-equivalent points = −0.76 + 1.16 × (first-visit raw + LGE raw score). Represents 10-year risk from the date of CMR. <strong>Exploratory only</strong> — LGE was excluded from the primary CMR analysis due to >30% missingness in the derivation cohort.</div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- end left col -->
+
+  <!-- ════ RIGHT: OUTPUT ════ -->
+  <div class="sticky">
+    <div class="card">
+
+      <!-- Gauge -->
+      <div class="gwrap">
+        <svg class="gauge" viewBox="0 0 300 168" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="gg" x1="30" y1="0" x2="270" y2="0" gradientUnits="userSpaceOnUse">
+              <stop offset="0%"   stop-color="#15803D"/>
+              <stop offset="22%"  stop-color="#65A30D"/>
+              <stop offset="42%"  stop-color="#CA8A04"/>
+              <stop offset="63%"  stop-color="#EA580C"/>
+              <stop offset="100%" stop-color="#B91C1C"/>
+            </linearGradient>
+          </defs>
+          <!-- track -->
+          <path id="g-tr" fill="#E8EFF9"/>
+          <!-- fill -->
+          <path id="g-fi" fill="url(#gg)"/>
+          <!-- cap -->
+          <circle cx="150" cy="143" r="7" fill="white" stroke="#E8EFF9" stroke-width="1.5"/>
+          <!-- threshold ticks -->
+          <line id="t10" stroke="#B0C0D8" stroke-width="1.5" stroke-dasharray="3,2.5"/>
+          <line id="t25" stroke="#B0C0D8" stroke-width="1.5" stroke-dasharray="3,2.5"/>
+          <!-- threshold labels -->
+          <text id="l10" font-size="8.5" fill="#8A9FBB" font-family="Inter,sans-serif" text-anchor="middle"/>
+          <text id="l25" font-size="8.5" fill="#8A9FBB" font-family="Inter,sans-serif" text-anchor="middle"/>
+          <!-- endpoint labels -->
+          <text x="22"  y="158" font-size="8.5" fill="#8A9FBB" font-family="Inter,sans-serif" text-anchor="middle">0%</text>
+          <text x="150" y="28"  font-size="8.5" fill="#8A9FBB" font-family="Inter,sans-serif" text-anchor="middle">50%</text>
+          <text x="278" y="158" font-size="8.5" fill="#8A9FBB" font-family="Inter,sans-serif" text-anchor="middle">100%</text>
+        </svg>
+
+        <div class="rnum" id="rnum" style="color:var(--g)">–</div>
+        <div class="rsub">10-year risk of heart failure admission,<br>transplantation, or death</div>
+        <span class="rbadge cat-low" id="rbadge">–</span>
+      </div>
+
+      <!-- Comparison box (module only) -->
+      <div class="cbox" id="cbox" style="display:none">
+        <div class="ctitle">Risk update from add-on module</div>
+        <div class="crow">
+          <span class="clbl">Baseline (first-visit only)</span>
+          <span class="cval" id="cbase">–</span>
+        </div>
+        <div class="crow">
+          <span class="clbl" id="cmodlbl">After add-on</span>
+          <span class="cval" id="cupd">–</span>
+          <span class="dtag dsame" id="cdelta">–</span>
+        </div>
+      </div>
+
+      <!-- Point breakdown -->
+      <div class="bdown">
+        <div class="bdtitle">Point breakdown</div>
+
+        <div class="brow"><span>Age at first ACHD visit</span><span class="bpts" id="b-age">–</span></div>
+        <div class="brow"><span>Heterotaxy</span><span class="bpts" id="b-het">–</span></div>
+        <div class="brow"><span>Lymphatic failure</span><span class="bpts" id="b-lymph">–</span></div>
+        <div class="brow"><span>Veno-venous collaterals</span><span class="bpts" id="b-coll">–</span></div>
+        <div class="brow"><span>Cirrhosis</span><span class="bpts" id="b-cirr">–</span></div>
+        <div class="brow"><span>Total bilirubin</span><span class="bpts" id="b-bil">–</span></div>
+        <div class="brow" style="border-bottom:none"><span>Natriuretic peptide</span><span class="bpts" id="b-np">–</span></div>
+
+        <!-- Module rows -->
+        <div id="modrows" style="display:none">
+          <div class="brow sh"><span id="modlbl">ADD-ON</span></div>
+          <div id="modrows-inner"></div>
+        </div>
+
+        <div class="btot">
+          <span class="bl">First-visit raw score</span>
+          <span class="bv" id="b-raw">–</span>
+        </div>
+        <div class="btot" style="margin-top:4px">
+          <span class="bl">Risk-equivalent points</span>
+          <span class="bv" id="b-eq">–</span>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- end right col -->
+
+</div><!-- end .wrap -->
+
+<!-- Reference table -->
+<div class="refwrap">
+  <button class="refbtn" onclick="toggleRef()">
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+      <rect y="1" width="13" height="1.6" rx=".8" fill="currentColor"/>
+      <rect y="5.5" width="13" height="1.6" rx=".8" fill="currentColor"/>
+      <rect y="10" width="13" height="1.6" rx=".8" fill="currentColor"/>
+    </svg>
+    Risk-equivalent points → 10-year risk: reference table
+  </button>
+  <div class="refpanel" id="refpanel">
+    <div class="reftbl-wrap">
+      <table class="reft">
+        <thead>
+          <tr><th>Risk-eq. points</th><th>10-year risk</th><th>Category</th></tr>
+        </thead>
+        <tbody id="refbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Disclaimer -->
+<div class="discwrap">
+  <div class="disc">
+    <strong>Research use only — not for routine clinical implementation without external validation.</strong> Derived from a retrospective single-centre cohort (Toronto General Hospital; n=355 adults with Fontan circulation). Internally validated via bootstrap optimism correction (C-index 0.757; calibration slope 0.870). Add-on modules are exploratory, use landmark analyses from the date of testing, and must not be combined across modalities. BNP and NT-proBNP are not directly interchangeable; NT-proBNP thresholds are approximate clinical analogues. Total bilirubin conversion: 1 mg/dL ≈ 17.1 µmol/L. Risk formula: 1 − exp[−0.0309 × exp(0.418 × risk-equivalent points)]. CPET conversion: 1.52 + 0.89 × extended score. Catheterization: 3.07 + 0.84 × extended score. CMR-LGE: −0.76 + 1.16 × extended score. Risk categories: Low &lt;10%, Intermediate 10–25%, High ≥25%.
+    <br><br>
+    <strong>Reference:</strong> Alonso-Gonzalez et al. Predicting adverse outcomes in adults with a Fontan circulation: a first-visit risk model with landmark evaluation of add-on investigations. <em>Manuscript in preparation.</em>
+  </div>
+</div>
+
+<script>
+// ─── STATE ──────────────────────────────────────────────────
+const S = {het:0,lymph:0,coll:0,cirr:0,lge:0};
+let bilUnit='umol', npType='bnp', activeMod='none';
+
+// ─── GAUGE CONSTANTS ────────────────────────────────────────
+const CX=150, CY=143, R=108, RI=73;
+let gCur=0, gTgt=0, gRaf=null;
+
+function pt(r,a){return[CX+r*Math.cos(a),CY+r*Math.sin(a)]}
+
+function drawGauge(f){
+  // Background track (full upper semicircle)
+  document.getElementById('g-tr').setAttribute('d',
+    `M${CX-R} ${CY} A${R} ${R} 0 0 1 ${CX+R} ${CY} L${CX+RI} ${CY} A${RI} ${RI} 0 0 0 ${CX-RI} ${CY} Z`);
+  if(f<.003){document.getElementById('g-fi').setAttribute('d','');return}
+  const end=Math.PI+Math.min(f,1)*Math.PI;
+  const [ox,oy]=pt(R,end), [ix,iy]=pt(RI,end);
+  const la=f>=1?1:0;
+  document.getElementById('g-fi').setAttribute('d',
+    `M${CX-R} ${CY} A${R} ${R} 0 ${la} 1 ${ox} ${oy} L${ix} ${iy} A${RI} ${RI} 0 ${la} 0 ${CX-RI} ${CY} Z`);
+}
+
+function initTicks(){
+  // 10% threshold (frac=0.10) and 25% threshold (frac=0.25)
+  [[0.10,'t10','l10'],[0.25,'t25','l25']].forEach(([f,tid,lid])=>{
+    const a=Math.PI+f*Math.PI;
+    const [x1,y1]=pt(R+7,a), [x2,y2]=pt(R-7,a);
+    const el=document.getElementById(tid);
+    el.setAttribute('x1',x1);el.setAttribute('y1',y1);
+    el.setAttribute('x2',x2);el.setAttribute('y2',y2);
+    // label outside the arc
+    const [lx,ly]=pt(R+18,a);
+    const le=document.getElementById(lid);
+    le.setAttribute('x',lx);
+    le.setAttribute('y',ly+3);
+    le.textContent=f===0.10?'10%':'25%';
+  });
+}
+
+function animG(tgt){
+  gTgt=Math.max(0,Math.min(1,tgt));
+  if(gRaf)cancelAnimationFrame(gRaf);
+  (function step(){
+    const d=gTgt-gCur;
+    if(Math.abs(d)<.001){gCur=gTgt;drawGauge(gCur);return}
+    gCur+=d*.15;drawGauge(gCur);gRaf=requestAnimationFrame(step);
+  })();
+}
+
+// ─── SCORING FUNCTIONS ──────────────────────────────────────
+function agePts(a){
+  if(a<23)return 0;if(a<=27)return 1;if(a<=32)return 2;
+  if(a<=37)return 3;if(a<=42)return 4;return 5;
+}
+function ageCat(a){
+  if(a<23)return'< 23 yrs';if(a<=27)return'23–27 yrs';if(a<=32)return'28–32 yrs';
+  if(a<=37)return'33–37 yrs';if(a<=42)return'38–42 yrs';return'≥ 43 yrs';
+}
+function bilU(v){return bilUnit==='mgdl'?v*17.1:v}
+function bilPts(u){if(u<=20)return 0;if(u<=40)return 1;if(u<=60)return 2;return 3}
+function bilCat(u){
+  if(bilUnit==='umol'){
+    if(u<=20)return'≤ 20 µmol/L';if(u<=40)return'21–40 µmol/L';
+    if(u<=60)return'41–60 µmol/L';return'> 60 µmol/L';
+  }else{
+    if(u<=20)return'≤ 1.2 mg/dL';if(u<=40)return'1.2–2.3 mg/dL';
+    if(u<=60)return'2.4–3.5 mg/dL';return'> 3.5 mg/dL';
+  }
+}
+function npPts(v){return(npType==='bnp'?v>=100:v>=300)?1:0}
+function npThresh(){return npType==='bnp'?'BNP ≥ 100 ng/L':'NT-proBNP ≥ 300 ng/L'}
+function vo2Pts(v){if(v>=25)return-1;if(v>=20)return 0;if(v>=15)return 1;if(v>=10)return 2;return 3}
+function vo2Cat(v){
+  if(v>=25)return'≥ 25 mL/kg/min';if(v>=20)return'20–24.9 mL/kg/min';
+  if(v>=15)return'15–19.9 mL/kg/min';if(v>=10)return'10–14.9 mL/kg/min';return'< 10 mL/kg/min';
+}
+function vePts(v){if(v<50)return-1;if(v<70)return 0;if(v<90)return 1;return 2}
+function veCat(v){if(v<50)return'< 50%';if(v<70)return'50–69%';if(v<90)return'70–89%';return'≥ 90%'}
+function fpPts(v){if(v<13)return-1;if(v<=15)return 0;if(v<=20)return 1;if(v<=25)return 2;return 3}
+function fpCat(v){
+  if(v<13)return'< 13 mmHg';if(v<=15)return'13–15 mmHg';
+  if(v<=20)return'16–20 mmHg';if(v<=25)return'21–25 mmHg';return'> 25 mmHg';
+}
+function risk10(eq){return 1-Math.exp(-0.0309*Math.exp(0.418*eq))}
+function pfmt(f){return(f*100).toFixed(1)+'%'}
+function pfmt0(f){return(f*100).toFixed(0)+'%'}
+function pf(n){return n>0?'+'+n:n<0?String(n):'0'}
+function pc(n){return n>0?'pp':n<0?'pn':'pz'}
+
+// ─── UI HANDLERS ────────────────────────────────────────────
+function setTog(field,val,btn){
+  S[field]=val;
+  btn.closest('.tog').querySelectorAll('.tb').forEach(b=>b.classList.remove('on','yes'));
+  btn.classList.add('on');
+  if(val>0)btn.classList.add('yes');
+  calc();
+}
+function setBilUnit(unit,btn){
+  const v=parseFloat(document.getElementById('bili').value)||0;
+  // auto-convert value
+  if(unit!==bilUnit){
+    document.getElementById('bili').value=
+      unit==='mgdl'?(v/17.1).toFixed(2):(v*17.1).toFixed(1);
+  }
+  bilUnit=unit;
+  btn.closest('.tog').querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  calc();
+}
+function setNPType(type,btn){
+  npType=type;
+  btn.closest('.tog').querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  calc();
+}
+function setMod(mod,btn){
+  activeMod=mod;
+  btn.closest('.mtabs').querySelectorAll('.mtab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.mp').forEach(p=>p.classList.remove('on'));
+  document.getElementById('panel-'+mod).classList.add('on');
+  calc();
+}
+
+// ─── MAIN CALCULATION ───────────────────────────────────────
+function calc(){
+  const age =parseFloat(document.getElementById('age').value)||18;
+  const bili=parseFloat(document.getElementById('bili').value)||0;
+  const npv =parseFloat(document.getElementById('npval').value)||0;
+
+  const ap=agePts(age), bu=bilU(bili), bp=bilPts(bu), np=npPts(npv);
+  const fvRaw=ap+S.het+S.lymph+S.coll+S.cirr+bp+np;
+
+  // Update inline notes
+  set('age-cat',ageCat(age));set('age-pts',pf(ap)+' pts');
+  set('bil-cat',bilCat(bu));set('bil-pts',pf(bp)+' pts');
+  set('np-thresh',npThresh());set('np-pts',pf(np)+' pts');
+
+  const baseRisk=risk10(fvRaw);
+
+  // Module
+  let eq=fvRaw, modRaw=0, modHtml='', modLabel='';
+
+  if(activeMod==='cpet'){
+    const vo2=parseFloat(document.getElementById('vo2').value)||20;
+    const vem=parseFloat(document.getElementById('vemvv').value)||49;
+    const v2p=vo2Pts(vo2), vep=vePts(vem);
+    modRaw=v2p+vep;
+    eq=1.52+0.89*(fvRaw+modRaw);
+    modLabel='CPET';
+    set('vo2-cat',vo2Cat(vo2));set('vo2-pts',pf(v2p)+' pts');
+    set('vemvv-cat',veCat(vem));set('vemvv-pts',pf(vep)+' pts');
+    modHtml=`<div class="brow"><span>Peak VO₂ (${vo2} mL/kg/min)</span><span class="bpts ${pc(v2p)}">${pf(v2p)}</span></div>`
+           +`<div class="brow" style="border-bottom:none"><span>Peak VE/MVV (${vem}%)</span><span class="bpts ${pc(vep)}">${pf(vep)}</span></div>`;
+  }else if(activeMod==='cath'){
+    const fp=parseFloat(document.getElementById('fp').value)||15;
+    const fpp=fpPts(fp);
+    modRaw=fpp;
+    eq=3.07+0.84*(fvRaw+modRaw);
+    modLabel='Catheterization';
+    set('fp-cat',fpCat(fp));set('fp-pts',pf(fpp)+' pts');
+    modHtml=`<div class="brow" style="border-bottom:none"><span>Fontan pressure (${fp} mmHg)</span><span class="bpts ${pc(fpp)}">${pf(fpp)}</span></div>`;
+  }else if(activeMod==='cmr'){
+    const lgep=S.lge;
+    modRaw=lgep;
+    eq=-0.76+1.16*(fvRaw+modRaw);
+    modLabel='CMR-LGE';
+    modHtml=`<div class="brow" style="border-bottom:none"><span>LGE (${lgep?'Present':'Absent'})</span><span class="bpts ${pc(lgep)}">${pf(lgep)}</span></div>`;
+  }
+
+  const updRisk=risk10(eq);
+
+  // Breakdown
+  function bset(id,n){
+    const el=document.getElementById(id);el.textContent=pf(n);
+    el.className='bpts '+pc(n);
+  }
+  bset('b-age',ap);bset('b-het',S.het);bset('b-lymph',S.lymph);
+  bset('b-coll',S.coll);bset('b-cirr',S.cirr);bset('b-bil',bp);bset('b-np',np);
+  set('b-raw',fvRaw+' pts');
+  set('b-eq',eq.toFixed(2)+' pts');
+
+  const mr=document.getElementById('modrows');
+  if(activeMod!=='none'){
+    mr.style.display='block';
+    set('modlbl',modLabel.toUpperCase());
+    document.getElementById('modrows-inner').innerHTML=modHtml;
+  }else{mr.style.display='none'}
+
+  // Comparison
+  const cb=document.getElementById('cbox');
+  if(activeMod!=='none'){
+    cb.style.display='block';
+    set('cbase',pfmt(baseRisk));set('cupd',pfmt(updRisk));
+    set('cmodlbl','After '+modLabel);
+    const d=updRisk-baseRisk;
+    const de=document.getElementById('cdelta');
+    if(Math.abs(d)<.004){de.textContent='≈ no change';de.className='dtag dsame'}
+    else if(d>0){de.textContent='▲ +'+pfmt(d).replace('%','pp');de.className='dtag dup'}
+    else{de.textContent='▼ '+pfmt(d).replace('%','pp');de.className='dtag ddown'}
+  }else{cb.style.display='none'}
+
+  // Risk display
+  animG(Math.max(0,Math.min(1,updRisk)));
+  const rn=document.getElementById('rnum');
+  const rb=document.getElementById('rbadge');
+  rn.textContent=pfmt(updRisk);
+  let col,cat,catcls;
+  if(updRisk<.10){col='#15803D';cat='Low risk';catcls='rbadge cat-low'}
+  else if(updRisk<.25){col='#B45309';cat='Intermediate risk';catcls='rbadge cat-mid'}
+  else{col='#B91C1C';cat='High risk';catcls='rbadge cat-high'}
+  rn.style.color=col;rb.textContent=cat;rb.className=catcls;
+
+  // Ref table highlight
+  const eq2=Math.min(12,Math.max(0,Math.round(eq)));
+  document.querySelectorAll('#refbody tr').forEach(tr=>
+    tr.classList.toggle('cur',Number(tr.dataset.pts)===eq2));
+}
+
+function set(id,v){document.getElementById(id).textContent=v}
+
+// ─── REFERENCE TABLE ────────────────────────────────────────
+function buildRef(){
+  const body=document.getElementById('refbody');
+  const rows=[];
+  for(let p=0;p<=12;p++){
+    const r=risk10(p);
+    const rpc=pfmt0(r);
+    let cat,cls;
+    if(r<.10){cat='Low';cls='cl'}
+    else if(r<.25){cat='Intermediate';cls='cm'}
+    else{cat='High';cls='cr'}
+    rows.push(`<tr data-pts="${p}"><td>${p===12?'≥ 11':p}</td><td class="${cls}">${rpc}</td><td class="${cls}">${cat}</td></tr>`);
+  }
+  body.innerHTML=rows.join('');
+}
+function toggleRef(){document.getElementById('refpanel').classList.toggle('on')}
+
+// ─── INIT ────────────────────────────────────────────────────
+buildRef();
+drawGauge(0);
+initTicks();
+calc();
+</script>
+</body>
+</html>
