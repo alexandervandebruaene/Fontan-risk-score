@@ -157,6 +157,25 @@ table.reft tr:last-child td{border-bottom:none}
 table.reft tr.cur td{background:#EDF4FF;font-weight:700}
 .cl{color:var(--g);font-weight:700}.cm{color:var(--a);font-weight:700}.cr{color:var(--r);font-weight:700}
 
+/* ── CRITERIA PANELS ── */
+.crit-row{flex-wrap:wrap;align-items:flex-start!important}
+.crit-row .frl{flex-basis:100%}
+.crit-row .tog{margin-top:4px;flex-shrink:0}
+.crit-btn{background:none;border:none;cursor:pointer;color:var(--blue);font-size:.7rem;font-weight:600;padding:0;display:inline-flex;align-items:center;gap:3px;margin-top:1px;white-space:nowrap;line-height:1.4}
+.crit-btn:hover{color:var(--blue2)}
+.crit-panel{display:none;width:100%;margin-top:6px;background:var(--inp);border-radius:6px;padding:9px 11px;font-size:.72rem;color:var(--t2);line-height:1.65;border-left:3px solid #B0C8E8}
+.crit-panel.on{display:block}
+.crit-panel strong{display:block;color:var(--t1);font-weight:600;margin-top:5px}
+.crit-panel strong:first-child{margin-top:0}
+.crit-panel ul{padding-left:15px;margin-top:2px;margin-bottom:2px}
+.crit-panel li{margin-bottom:1px}
+
+/* ── GAUGE LEGEND ── */
+.g-legend{display:none;align-items:center;justify-content:center;gap:16px;margin:7px 0 2px;font-size:.68rem;color:var(--t2)}
+.g-legend.on{display:flex}
+.g-legend span{display:flex;align-items:center;gap:5px}
+.g-legend i{width:13px;height:9px;border-radius:2px;display:inline-block;flex-shrink:0}
+
 /* ── DISCLAIMER ── */
 .discwrap{max-width:1080px;margin:0 auto 32px;padding:0 16px}
 .disc{background:#F6F1FF;border:1px solid #DDD4F8;border-radius:var(--rr);padding:14px 18px;font-size:.72rem;color:#4C1D95;line-height:1.65}
@@ -206,9 +225,21 @@ table.reft tr.cur td{background:#EDF4FF;font-weight:700}
         </div>
 
         <!-- Lymphatic failure -->
-        <div class="fr">
-          <span class="frl">Lymphatic failure <small>(PLE or plastic bronchitis)</small></span>
-          <div class="tog">
+        <div class="fr crit-row">
+          <div style="flex:1;min-width:0">
+            <span class="frl">Lymphatic failure</span>
+            <button class="crit-btn" onclick="toggleCrit('lymph-crit',this)">▸ Diagnostic criteria</button>
+            <div class="crit-panel" id="lymph-crit">
+              <strong>Protein-losing enteropathy (PLE)</strong>
+              <ul>
+                <li>24-h alpha-1 antitrypsin clearance &gt;27 mL/day</li>
+                <li>&gt;56 mL/day in patients with diarrhea</li>
+              </ul>
+              <strong>Plastic bronchitis</strong>
+              Clinical diagnosis (bronchial cast expectoration or bronchoscopic confirmation)
+            </div>
+          </div>
+          <div class="tog" style="margin-top:4px">
             <button class="tb on" onclick="setTog('lymph',0,this)">No</button>
             <button class="tb" onclick="setTog('lymph',2,this)">Yes &nbsp;+2</button>
           </div>
@@ -224,9 +255,27 @@ table.reft tr.cur td{background:#EDF4FF;font-weight:700}
         </div>
 
         <!-- Cirrhosis -->
-        <div class="fr" style="margin-bottom:14px">
-          <span class="frl">Cirrhosis <small>(by imaging criteria)</small></span>
-          <div class="tog">
+        <div class="fr crit-row" style="margin-bottom:14px">
+          <div style="flex:1;min-width:0">
+            <span class="frl">Cirrhosis</span>
+            <button class="crit-btn" onclick="toggleCrit('cirr-crit',this)">▸ Imaging criteria</button>
+            <div class="crit-panel" id="cirr-crit">
+              <strong>Liver ultrasound — ≥ 2 of:</strong>
+              <ul>
+                <li>Hepatic surface nodularity</li>
+                <li>Lobar redistribution</li>
+                <li>Heterogeneous parenchyma</li>
+              </ul>
+              <strong>Abdominal CT or MRI — ≥ 2 of:</strong>
+              <ul>
+                <li>Hepatic surface nodularity</li>
+                <li>Lobar redistribution</li>
+                <li>Heterogeneous parenchyma</li>
+                <li>Fibrosis</li>
+              </ul>
+            </div>
+          </div>
+          <div class="tog" style="margin-top:4px">
             <button class="tb on" onclick="setTog('cirr',0,this)">No</button>
             <button class="tb" onclick="setTog('cirr',1,this)">Yes &nbsp;+1</button>
           </div>
@@ -362,6 +411,10 @@ table.reft tr.cur td{background:#EDF4FF;font-weight:700}
           <path id="g-tr" fill="#E8EFF9"/>
           <!-- fill -->
           <path id="g-fi" fill="url(#gg)"/>
+          <!-- delta overlay (module change) -->
+          <path id="g-dl" opacity="0"/>
+          <!-- baseline marker line -->
+          <line id="g-bm" stroke-width="2.5" stroke-linecap="round" opacity="0"/>
           <!-- cap -->
           <circle cx="150" cy="143" r="7" fill="white" stroke="#E8EFF9" stroke-width="1.5"/>
           <!-- threshold ticks -->
@@ -379,6 +432,10 @@ table.reft tr.cur td{background:#EDF4FF;font-weight:700}
         <div class="rnum" id="rnum" style="color:var(--g)">–</div>
         <div class="rsub">10-year risk of heart failure admission,<br>transplantation, or death</div>
         <span class="rbadge cat-low" id="rbadge">–</span>
+        <div class="g-legend" id="g-legend">
+          <span><i id="g-leg-base" style="background:#92400E;opacity:.7"></i>Baseline (first-visit)</span>
+          <span><i id="g-leg-delta" style="background:#B91C1C;opacity:.5"></i><span id="g-leg-lbl">Module change</span></span>
+        </div>
       </div>
 
       <!-- Comparison box (module only) -->
@@ -466,20 +523,61 @@ let bilUnit='umol', npType='bnp', activeMod='none';
 
 // ─── GAUGE CONSTANTS ────────────────────────────────────────
 const CX=150, CY=143, R=108, RI=73;
-let gCur=0, gTgt=0, gRaf=null;
+let gCur=0, gTgt=0, gBase=0, gHasMod=false, gRaf=null;
 
 function pt(r,a){return[CX+r*Math.cos(a),CY+r*Math.sin(a)]}
 
-function drawGauge(f){
-  // Background track (full upper semicircle)
+function arcSeg(f1,f2){
+  if(Math.abs(f2-f1)<.003)return'';
+  const a1=Math.PI+f1*Math.PI,a2=Math.PI+f2*Math.PI;
+  const[ox1,oy1]=pt(R,a1),[ox2,oy2]=pt(R,a2);
+  const[ix1,iy1]=pt(RI,a1),[ix2,iy2]=pt(RI,a2);
+  const la=(f2-f1)>=.5?1:0;
+  return`M${ox1} ${oy1} A${R} ${R} 0 ${la} 1 ${ox2} ${oy2} L${ix2} ${iy2} A${RI} ${RI} 0 ${la} 0 ${ix1} ${iy1} Z`;
+}
+
+function drawGauge(f, fBase, hasMod){
+  // Background track
   document.getElementById('g-tr').setAttribute('d',
     `M${CX-R} ${CY} A${R} ${R} 0 0 1 ${CX+R} ${CY} L${CX+RI} ${CY} A${RI} ${RI} 0 0 0 ${CX-RI} ${CY} Z`);
-  if(f<.003){document.getElementById('g-fi').setAttribute('d','');return}
-  const end=Math.PI+Math.min(f,1)*Math.PI;
-  const [ox,oy]=pt(R,end), [ix,iy]=pt(RI,end);
-  const la=f>=1?1:0;
-  document.getElementById('g-fi').setAttribute('d',
-    `M${CX-R} ${CY} A${R} ${R} 0 ${la} 1 ${ox} ${oy} L${ix} ${iy} A${RI} ${RI} 0 ${la} 0 ${CX-RI} ${CY} Z`);
+  // Main fill (updated risk)
+  if(f<.003){document.getElementById('g-fi').setAttribute('d','');}
+  else{
+    const end=Math.PI+Math.min(f,1)*Math.PI;
+    const[ox,oy]=pt(R,end),[ix,iy]=pt(RI,end);
+    const la=f>=1?1:0;
+    document.getElementById('g-fi').setAttribute('d',
+      `M${CX-R} ${CY} A${R} ${R} 0 ${la} 1 ${ox} ${oy} L${ix} ${iy} A${RI} ${RI} 0 ${la} 0 ${CX-RI} ${CY} Z`);
+  }
+  // Delta overlay + baseline marker
+  const dl=document.getElementById('g-dl');
+  const bm=document.getElementById('g-bm');
+  const leg=document.getElementById('g-legend');
+  const legDelta=document.getElementById('g-leg-delta');
+  const legLbl=document.getElementById('g-leg-lbl');
+  if(hasMod && Math.abs(f-fBase)>.005){
+    const up=f>fBase;
+    const fLo=Math.min(f,fBase), fHi=Math.max(f,fBase);
+    dl.setAttribute('d',arcSeg(fLo,fHi));
+    dl.setAttribute('fill', up?'#B91C1C':'#15803D');
+    dl.setAttribute('opacity','0.32');
+    // Baseline tick mark
+    const ab=Math.PI+fBase*Math.PI;
+    const[x1,y1]=pt(R+6,ab),[x2,y2]=pt(RI-6,ab);
+    bm.setAttribute('x1',x1);bm.setAttribute('y1',y1);
+    bm.setAttribute('x2',x2);bm.setAttribute('y2',y2);
+    bm.setAttribute('stroke', up?'#92400E':'#166534');
+    bm.setAttribute('opacity','0.8');
+    // Legend
+    leg.classList.add('on');
+    legDelta.style.background=up?'#B91C1C':'#15803D';
+    legLbl.textContent=up?'Added risk':'Reduced risk';
+    document.getElementById('g-leg-base').style.background=up?'#92400E':'#166534';
+  } else {
+    dl.setAttribute('d','');dl.setAttribute('opacity','0');
+    bm.setAttribute('opacity','0');
+    leg.classList.remove('on');
+  }
 }
 
 function initTicks(){
@@ -499,13 +597,15 @@ function initTicks(){
   });
 }
 
-function animG(tgt){
+function animG(tgt, base, hasMod){
   gTgt=Math.max(0,Math.min(1,tgt));
+  gBase=Math.max(0,Math.min(1,base??0));
+  gHasMod=!!hasMod;
   if(gRaf)cancelAnimationFrame(gRaf);
   (function step(){
     const d=gTgt-gCur;
-    if(Math.abs(d)<.001){gCur=gTgt;drawGauge(gCur);return}
-    gCur+=d*.15;drawGauge(gCur);gRaf=requestAnimationFrame(step);
+    if(Math.abs(d)<.001){gCur=gTgt;drawGauge(gCur,gBase,gHasMod);return}
+    gCur+=d*.15;drawGauge(gCur,gBase,gHasMod);gRaf=requestAnimationFrame(step);
   })();
 }
 
@@ -663,7 +763,7 @@ function calc(){
   }else{cb.style.display='none'}
 
   // Risk display
-  animG(Math.max(0,Math.min(1,updRisk)));
+  animG(Math.max(0,Math.min(1,updRisk)), baseRisk, activeMod!=='none');
   const rn=document.getElementById('rnum');
   const rb=document.getElementById('rbadge');
   rn.textContent=pfmt(updRisk);
@@ -697,10 +797,15 @@ function buildRef(){
   body.innerHTML=rows.join('');
 }
 function toggleRef(){document.getElementById('refpanel').classList.toggle('on')}
+function toggleCrit(id,btn){
+  const p=document.getElementById(id);
+  const on=p.classList.toggle('on');
+  btn.textContent=(on?'▾ ':'▸ ')+btn.textContent.slice(2);
+}
 
 // ─── INIT ────────────────────────────────────────────────────
 buildRef();
-drawGauge(0);
+drawGauge(0,0,false);
 initTicks();
 calc();
 </script>
